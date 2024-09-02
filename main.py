@@ -1,14 +1,6 @@
-import psycopg2
-
-import string
-import secrets
-# Connect to an existing database
-conn = psycopg2.connect(
-    database = "pass_manager",
-    user = "postgres",
-    password = "password01",
-    host = "0.0.0.0"
-)
+import psycopg2, string, secrets
+import config
+import connect
 
 # Creates a password with at least one upper and lowercase letter + min 3 digits
 def create_password(length):
@@ -21,8 +13,14 @@ def create_password(length):
             break
     return password
 
+# Load the config from database.ini
+db_config = config.load_config()
+
+# Connect to an existing database with the config
+db_connect = connect.connect(db_config);
+
 # Open cursor to perform database operatiosn
-cur = conn.cursor()
+cur = db_connect.cursor()
 
 #Query the database
 cur.execute("SELECT * FROM passwords")
@@ -36,4 +34,3 @@ else:
 
 #Close Communication with database
 cur.close()
-conn.close()
