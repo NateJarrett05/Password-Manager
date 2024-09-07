@@ -1,6 +1,8 @@
 import psycopg2
 import config, connect
-import string, secrets
+import string, secrets, argparse
+
+password_length = 20
 
 # Creates a password with at least one upper and lowercase letter + min 3 digits
 def create_password(length):
@@ -19,7 +21,6 @@ def check_entry_exists(cursor, URL):
     cursor.execute(SQL, (URL,))
     entries = cursor.fetchone()
     if entries == None:
-        print("No account found for the URL: " + URL)
         return False
     else:
         return True
@@ -55,16 +56,19 @@ def query_one(cursor, URL):
 
 # Insert a new entry to the database
 def insert(cursor, URL, username, password):
-    SQL = "INSERT INTO passwords VALUES (%s, %s, %s)"
-    cursor.execute(SQL, (URL, username, password))
-    query_one(cursor, URL)
-    print("Entry succesfully inserted.\n")
+    if not check_entry_exists(cursor, URL):
+        SQL = "INSERT INTO passwords VALUES (%s, %s, %s)"
+        cursor.execute(SQL, (URL, username, password))
+        query_one(cursor, URL)
+        print("Entry succesfully inserted.\n")
+    else:
+        print("There is already an account attached to the given URL.")
 
 # Update an existing entry to the database
-def update(cursor, URL, username, password):
+def update(cursor, URL, username):
     if check_entry_exists(cursor, URL):
-        SQL = "UPDATE passwords SET username = %s, password = %s WHERE url = %s"
-        cursor.execute(SQL, (username, password, URL))
+        SQL = "UPDATE passwords SET username = %s WHERE url = %s"
+        cursor.execute(SQL, (username, URL))
         query_one(cursor, URL)
         print("Entry succesfully updated.\n")
 
@@ -83,13 +87,40 @@ db_connect = connect.connect(db_config);
 # Open cursor to perform database operatiosn
 db_cursor = db_connect.cursor()
 
-# Query the database
-query_all(db_cursor)
+parser = argparse.ArgumentParser(
+                    prog='Password Manager',
+                    description='A program to store and manage passwords securely.')
 
-# Modify the database
-insert(db_cursor, "www.youtube.com", "username03", "password03")
-update(db_cursor, "www.youtube.com", "username10", "password10")
-remove(db_cursor, "www.youtube.com")
+parser.add_argument("-a", "--add", nargs=2, metavar=('URL', 'Username'),
+                    help="Adds an entry with provided URL and username. Strong password will be automatically generated for the account. There is not support for multiple accounts on the same URL.")
+parser.add_argument("-r", "--remove", nargs=1, metavar='URL',
+                    help="Remove an entry by URL. If account attached to URL does not exists it will print an error message.")
+parser.add_argument("-l", "--lookup", nargs="?", metavar='URL', default = 'all',
+                    help="Lookup an entry by URL or query all entries. If provided with *all* or none it will print all entries.")
+parser.add_argument("-u", "--update", nargs=2, metavar=('URL', 'Username'),
+                    help="Update a username entry by URL. If account attached to URL does not exists it will print an error message.")
+
+arguments = parser.parse_args()
+
+# Add entry to the database
+if arguments.add:
+    password = create_password(password_length)
+    insert(db_cursor, arguments.add[0], arguments.add[1], password)
+
+# Remove entry from the databse
+elif arguments.remove:
+    remove(db_cursor, arguments.remove[0])
+
+# Update entry in the database
+elif arguments.update:
+    update(db_cursor, arguments.update[0], arguments.update[1])
+
+# Query the databse
+else:
+    if arguments.lookup == 'all' or arguments.lookup == None:
+        query_all(db_cursor)
+    else:
+        query_one(db_cursor, arguments.lookup)
 
 # Push any changes to the database
 db_connect.commit()
