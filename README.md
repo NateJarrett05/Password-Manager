@@ -1,4 +1,6 @@
 # Password Manager
+*Basic description here*. For each entry in the database there can only be one username and password combination per URL. This allows for an easier time removing, updating, and verifying entries. If there are multiple entries in the database with the same URL, any updates/removals will be applied to both of them. Perhaps in a future version there will be implementation for multiple accounts on one URL.
+
 ### docker-compose.yaml file
 Docker Compose is a tool for defining and running multi-container applications. The docker-compose.yaml file is the configuration file for the infrastructure of this project. Since the config file contains the username and password for the database, it shouldn't be included in project repositories. However, this project is just for practice in SQL, docker, and development in general the password is *password01* and the username is default so I will be leaving the file for future reference. The same goes for the database.ini file which contains the same info for connecting to the database. The two packages being used for this project are the PostgreSQL package for database usage and the Adminer package which provides a web UI for manipulating the database. The docker compose documentation can be found at this URL: https://docs.docker.com/compose/
 .
