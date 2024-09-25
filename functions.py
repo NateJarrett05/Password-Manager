@@ -1,3 +1,6 @@
+import verification
+import string, secrets
+
 # Creates a password with at least one upper and lowercase letter + min 3 digits
 def create_password(length):
     chars = string.ascii_letters + string.digits + '!@#$%^&*'
@@ -28,9 +31,10 @@ def query_all(cursor):
     else:
         print("----------")
         for record in entries:
+            decoded_password = verification.decrypt_password(record[2])
             print("URL: " + record[0])
             print("Username: " + record[1])
-            print("Password: " + record[2])
+            print("Password: " + decoded_password)
             print("----------")
 
 # Retrieve and print entries fetched by URL
@@ -43,16 +47,19 @@ def query_one(cursor, URL):
     else:
         print("----------")
         for record in entries:
+            print(record[2])
+            decoded_password = verification.decrypt_password(record[2])
             print("URL: " + record[0])
             print("Username: " + record[1])
-            print("Password: " + record[2])
+            print("Password: " + decoded_password)
             print("----------")
 
 # Insert a new entry to the database
 def insert(cursor, URL, username, password):
     if not check_entry_exists(cursor, URL):
+        encrypted_password = verification.encrypt_password(password)
         SQL = "INSERT INTO passwords VALUES (%s, %s, %s)"
-        cursor.execute(SQL, (URL, username, password))
+        cursor.execute(SQL, (URL, username, encrypted_password.decode()))
         query_one(cursor, URL)
         print("Entry succesfully inserted.\n")
     else:

@@ -1,5 +1,6 @@
 import super_secret as ss
 import argon2, getpass
+from cryptography.fernet import Fernet
 
 # Verifies the user has permission to access the database with a password and key string
 def user_verification():
@@ -19,5 +20,15 @@ def user_verification():
         print("Invalid master key. Intruder!")
         return False
 
-    print("Welcome home Mr. Stark\n")
+    print("✰✰✰ Welcome home Mr. Stark ✰✰✰")
     return True
+
+def encrypt_password(raw_password):
+    fernet = Fernet(ss.MASTER_KEY)
+    encrypted_password = fernet.encrypt(raw_password.encode())
+    return encrypted_password
+
+def decrypt_password(encoded_password):
+    fernet = Fernet(ss.MASTER_KEY)
+    decrypted_password = fernet.decrypt(encoded_password).decode()
+    return decrypted_password

@@ -1,6 +1,6 @@
 import psycopg2
 import config, connect, functions, verification
-import string, secrets, argparse
+import argparse
 
 PASSWORD_LENGTH = 20
 
